@@ -1,17 +1,17 @@
 import {IInputs, IOutputs} from "./generated/ManifestTypes";
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+import ReactSampleTextBox from "./ReactSampleTextBox";
 
 export class PCFReactSample implements ComponentFramework.StandardControl<IInputs, IOutputs> {
 
 	private _value: string;
 	private _notifyOutputChanged:() => void;
-	private inputElement: HTMLInputElement;
 	private _container: HTMLDivElement;
-	private _context: ComponentFramework.Context<IInputs>;
-	private _refreshData: EventListenerOrEventListenerObject;
 
 	public refreshData(evt: Event) : void
 	{
-		this._value = (this.inputElement.value as any);
+		//this._value = (this.inputElement.value as any);
 		this._notifyOutputChanged();
 	}
 
@@ -35,25 +35,9 @@ export class PCFReactSample implements ComponentFramework.StandardControl<IInput
 	public init(context: ComponentFramework.Context<IInputs>, notifyOutputChanged: () => void, state: ComponentFramework.Dictionary, container:HTMLDivElement)
 	{
 		// Add control initialization code
-		this._context = context;
 		this._container = document.createElement("div");
-		this._notifyOutputChanged = notifyOutputChanged;
-		this._refreshData = this.refreshData.bind(this);
-
-		// creating HTML elements for the input type range and binding it to the function which refreshes the control data
-		this.inputElement = document.createElement("input");
-		this.inputElement.addEventListener("input",this._refreshData);
-		this.inputElement.setAttribute("id","inputText");
-
-		// retrieving the latest value from the control and setting it to the HTMl elements.
-		this._value = context.parameters.sampleProperty.raw;
-		this.inputElement.setAttribute("value",context.parameters.sampleProperty.formatted ?
-		context.parameters.sampleProperty.formatted : "0");
-		// appending the HTML elements to the control's HTML container element.
-		this._container.appendChild(this.inputElement);
+		
 		container.appendChild(this._container);
-		var sample = document.createElement("div");
-		container.appendChild(sample);
 	}
 
 
@@ -65,8 +49,10 @@ export class PCFReactSample implements ComponentFramework.StandardControl<IInput
 	{
 		// Add code to update control view
 		this._value = context.parameters.sampleProperty.raw;
-		this._context = context;
-		this.inputElement.setAttribute("value",context.parameters.sampleProperty.formatted ? context.parameters.sampleProperty.formatted : "");
+		ReactDOM.render(
+			React.createElement(ReactSampleTextBox)
+			, this._container
+		);
 	}
 
 	/** 
@@ -87,6 +73,6 @@ export class PCFReactSample implements ComponentFramework.StandardControl<IInput
 	public destroy(): void
 	{
 		// Add code to cleanup control if necessary
-		this.inputElement.removeEventListener("input", this._refreshData);
+		ReactDOM.unmountComponentAtNode(this._container);
 	}
 }
