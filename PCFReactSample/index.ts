@@ -1,19 +1,14 @@
 import {IInputs, IOutputs} from "./generated/ManifestTypes";
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import ReactSampleTextBox from "./ReactSampleTextBox";
+import { ReactSampleTextBox, IProps } from "./ReactSampleTextBox";
 
 export class PCFReactSample implements ComponentFramework.StandardControl<IInputs, IOutputs> {
 
 	private _value: string;
 	private _notifyOutputChanged:() => void;
 	private _container: HTMLDivElement;
-
-	public refreshData(evt: Event) : void
-	{
-		//this._value = (this.inputElement.value as any);
-		this._notifyOutputChanged();
-	}
+	private props: IProps = { value : "", onChange : this.notifyChange.bind(this) };
 
 	/**
 	 * Empty constructor.
@@ -35,11 +30,17 @@ export class PCFReactSample implements ComponentFramework.StandardControl<IInput
 	public init(context: ComponentFramework.Context<IInputs>, notifyOutputChanged: () => void, state: ComponentFramework.Dictionary, container:HTMLDivElement)
 	{
 		// Add control initialization code
+		this._notifyOutputChanged = notifyOutputChanged;
 		this._container = document.createElement("div");
+		this.props.value = context.parameters.sampleProperty.raw || "";
 		
 		container.appendChild(this._container);
 	}
 
+	notifyChange(value: string) {
+		this._value = value;
+		this._notifyOutputChanged();
+	}
 
 	/**
 	 * Called when any value in the property bag has changed. This includes field values, data-sets, global values such as container height and width, offline status, control metadata values such as label, visible, etc.
@@ -49,8 +50,9 @@ export class PCFReactSample implements ComponentFramework.StandardControl<IInput
 	{
 		// Add code to update control view
 		this._value = context.parameters.sampleProperty.raw;
+		this.props.value = this._value;
 		ReactDOM.render(
-			React.createElement(ReactSampleTextBox)
+			React.createElement(ReactSampleTextBox, this.props)
 			, this._container
 		);
 	}
